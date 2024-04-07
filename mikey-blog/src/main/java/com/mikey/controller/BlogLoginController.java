@@ -1,7 +1,7 @@
 package com.mikey.controller;
 
 import com.mikey.domain.ResponseResult;
-import com.mikey.domain.entity.User;
+import com.mikey.domain.dto.LoginUserDto;
 import com.mikey.enums.AppHttpCodeEnum;
 import com.mikey.exception.SystemException;
 import com.mikey.service.BlogLoginService;
@@ -25,11 +25,11 @@ public class BlogLoginController {
      * @return
      */
     @PostMapping("/login")
-    public ResponseResult login(@RequestBody User user) {
-        if(!StringUtils.hasText(user.getUserName())){
+    public ResponseResult login(@RequestBody LoginUserDto loginUserDto) {
+        if(!StringUtils.hasText(loginUserDto.getUserName())){
             throw new SystemException(AppHttpCodeEnum.REQUIRE_USERNAME);
         }
-        return  blogLoginService.login(user);
+        return  blogLoginService.login(loginUserDto);
     }
     /**
      * 退出登录

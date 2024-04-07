@@ -1,8 +1,8 @@
 package com.mikey.service.impl;
 
 import com.mikey.domain.ResponseResult;
+import com.mikey.domain.dto.LoginUserDto;
 import com.mikey.domain.entity.LoginUser;
-import com.mikey.domain.entity.User;
 import com.mikey.domain.vo.BlogUserLoginVo;
 import com.mikey.domain.vo.UserInfoVo;
 import com.mikey.service.BlogLoginService;
@@ -26,8 +26,8 @@ public class BlogLoginServiceImpl implements BlogLoginService {
     private RedisCache redisCache;
 
     @Override
-    public ResponseResult login(User user) {
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserName(), user.getPassword());
+    public ResponseResult login(LoginUserDto loginUserDto) {
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginUserDto.getUserName(), loginUserDto.getPassword());
         Authentication authenticate = authenticationManager.authenticate(authenticationToken);
         if (Objects.isNull(authenticate)) {
             throw new RuntimeException("用户名或密码错误");

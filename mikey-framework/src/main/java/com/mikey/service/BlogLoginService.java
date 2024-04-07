@@ -1,10 +1,10 @@
 package com.mikey.service;
 
 import com.mikey.domain.ResponseResult;
-import com.mikey.domain.entity.User;
+import com.mikey.domain.dto.LoginUserDto;
 
 public interface BlogLoginService {
-    ResponseResult login(User user);
+    ResponseResult login(LoginUserDto loginUserDto);
 
     ResponseResult logout();
 }

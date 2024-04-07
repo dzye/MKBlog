@@ -3,16 +3,21 @@ package com.mikey.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mikey.constants.SystemConstants;
 import com.mikey.domain.ResponseResult;
+import com.mikey.domain.dto.CommentDto;
 import com.mikey.domain.entity.Comment;
 import com.mikey.domain.vo.CommentVo;
 import com.mikey.domain.vo.PageVo;
+import com.mikey.enums.AppHttpCodeEnum;
+import com.mikey.exception.SystemException;
 import com.mikey.mapper.CommentMapper;
 import com.mikey.service.CommentService;
 import com.mikey.service.UserService;
 import com.mikey.utils.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -28,10 +33,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private UserService userService;
 
     @Override
-    public ResponseResult<PageVo<CommentVo>> commentList(Integer pageNum, Integer pageSize, Long articleId) {
+    public ResponseResult<PageVo<CommentVo>> commentList(String commentType, Integer pageNum, Integer pageSize, Long articleId) {
         LambdaQueryWrapper<Comment> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(Comment::getArticleId, articleId);
+        lambdaQueryWrapper.eq(SystemConstants.ARTICLE_COMMENT.equals(commentType),Comment::getArticleId, articleId);
         lambdaQueryWrapper.eq(Comment::getRootId, -1);
+        lambdaQueryWrapper.eq(Comment::getType, commentType);
         Page<Comment> page = new Page(pageNum, pageSize);
         page(page, lambdaQueryWrapper);
         List<CommentVo> commentListVos = toCommentVoList(page.getRecords());
@@ -42,14 +48,25 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         return ResponseResult.okResult(new PageVo(commentListVos, page.getTotal()));
     }
 
+    @Override
+    public ResponseResult addComment(CommentDto commentDto) {
+        if (!StringUtils.hasText(commentDto.getContent())) {
+            throw new SystemException(AppHttpCodeEnum.CONTENT_NOT_NULL);
+        }
+        Comment comment = BeanCopyUtils.copyBean(commentDto, Comment.class);
+        save(comment);
+        return ResponseResult.okResult();
+    }
+
     private List<CommentVo> getChildren(Long id) {
         LambdaQueryWrapper<Comment> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Comment::getRootId,id);
+        queryWrapper.eq(Comment::getRootId, id);
         queryWrapper.orderByAsc(Comment::getCreateTime);
         List<Comment> comments = list(queryWrapper);
         List<CommentVo> commentVos = toCommentVoList(comments);
         return commentVos;
     }
+
     private List<CommentVo> toCommentVoList(List<Comment> list) {
         List<CommentVo> commentVos = BeanCopyUtils.copyBeanList(list, CommentVo.class);
         for (CommentVo commentVo : commentVos) {
